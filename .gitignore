@@ -1,0 +1,9 @@
+# Ігнорування файлів
+node_modules/
+.env
+*.log
+mysql_data/
+vendor/
+
+# Результати парсингу (можна комітити для прикладу)
+# parsers/parsed_questions.json

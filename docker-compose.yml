@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Веб-сервер Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: quest_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - quest_network
+    restart: unless-stopped
+
+  # PHP-FPM сервер
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: quest_php
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - quest_network
+    restart: unless-stopped
+
+  # База даних MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: quest_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: quest_game
+      MYSQL_USER: quest_user
+      MYSQL_PASSWORD: quest_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - quest_network
+    restart: unless-stopped
+
+  # phpMyAdmin для управління базою даних
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: quest_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - quest_network
+    restart: unless-stopped
+
+networks:
+  quest_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
