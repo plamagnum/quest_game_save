@@ -342,6 +342,7 @@ function renderGameDashboard(isAdminView = false) {
                 html += `
                     <button class="team-select-btn ${selectedTeamId === team.id ? 'selected' : ''}" 
                             style="background: ${team.color};"
+                            data-team-id="${team.id}"
                             onclick="selectTeam(${team.id})">
                         ${escapeHtml(team.name)}
                     </button>
@@ -452,9 +453,8 @@ function selectTeam(teamId) {
     selectedTeamId = teamId;
     // Оновлення візуального стану кнопок
     document.querySelectorAll('.team-select-btn').forEach(btn => {
-        btn.classList.remove('selected');
+        btn.classList.toggle('selected', parseInt(btn.dataset.teamId) === teamId);
     });
-    event.target.classList.add('selected');
     showToast('Команду обрано!', 'success');
 }
 
@@ -692,7 +692,7 @@ async function loadAdminClasses() {
                                 <td>${c.id}</td>
                                 <td>${escapeHtml(c.name)}</td>
                                 <td class="actions">
-                                    <button class="btn btn-primary btn-sm" onclick="editClass(${c.id}, '${escapeHtml(c.name)}')">✏️</button>
+                                    <button class="btn btn-primary btn-sm" onclick="editClass(${c.id})">✏️</button>
                                     <button class="btn btn-danger btn-sm" onclick="deleteClass(${c.id})">🗑️</button>
                                 </td>
                             </tr>
@@ -719,7 +719,11 @@ function showAddClassModal() {
     });
 }
 
-async function editClass(id, currentName) {
+async function editClass(id) {
+    const classes = await apiRequest('/classes');
+    const cls = classes.find(c => c.id === id);
+    if (!cls) return;
+    const currentName = cls.name;
     showModal('Редагувати клас', `
         <div class="form-group">
             <label>Назва класу</label>
@@ -762,7 +766,7 @@ async function loadAdminSubjects() {
                                 <td>${s.id}</td>
                                 <td>${escapeHtml(s.name)}</td>
                                 <td class="actions">
-                                    <button class="btn btn-primary btn-sm" onclick="editSubject(${s.id}, '${escapeHtml(s.name)}')">✏️</button>
+                                    <button class="btn btn-primary btn-sm" onclick="editSubject(${s.id})">✏️</button>
                                     <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id})">🗑️</button>
                                 </td>
                             </tr>
@@ -789,7 +793,11 @@ function showAddSubjectModal() {
     });
 }
 
-async function editSubject(id, currentName) {
+async function editSubject(id) {
+    const subjects = await apiRequest('/subjects');
+    const subj = subjects.find(s => s.id === id);
+    if (!subj) return;
+    const currentName = subj.name;
     showModal('Редагувати предмет', `
         <div class="form-group">
             <label>Назва предмету</label>
